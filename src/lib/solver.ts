@@ -80,11 +80,13 @@ export function gaussJordan(
 }
 
 export function resolverSistema(ecs: Ecuacion[]): SistemaResultado {
-  const dimension = ecs.some((e) => Math.abs(e.c) > EPS) ? 3 : 2;
   const filtradas = ecs.filter((e) => e.visible);
   if (filtradas.length === 0) {
     return { tipo: 'infinita', detalle: 'Añade ecuaciones para resolver el sistema.' };
   }
+  // La dimensión debe determinarse SOLO con las ecuaciones visibles, para que
+  // el mensaje de resultado (2D vs 3D) coincida con lo que se resuelve.
+  const dimension = filtradas.some((e) => Math.abs(e.c) > EPS) ? 3 : 2;
 
   const ab =
     dimension === 3

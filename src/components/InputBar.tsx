@@ -138,16 +138,15 @@ export default function InputBar({ ocupado, iaDisponible, onGraficar, onAnalizar
   const reconocimientoRef = useRef<{ stop: () => void } | null>(null);
   const temporizadorRef = useRef<number | null>(null);
 
-  // Sincronizar el campo cuando el contenido cambia desde fuera (voz, ejemplos, IA)
+  // Configurar el campo matemático al montar (una sola vez).
+  // El teclado virtual propio de MathLive y su menú se desactivan para que no
+  // interfieran con el teclado matemático personalizado de la app.
   useEffect(() => {
     const mf = mfRef.current;
-    if (mf) {
-      if (mf.getValue('latex') !== latex) mf.setValue(latex);
-      // Desactivar el teclado virtual propio de MathLive
-      (mf as unknown as { virtualKeyboardMode?: string }).virtualKeyboardMode = 'off';
-      (mf as unknown as { menuMode?: string }).menuMode = 'off';
-    }
-  }, [latex]);
+    if (!mf) return;
+    (mf as unknown as { virtualKeyboardMode?: string }).virtualKeyboardMode = 'off';
+    (mf as unknown as { menuMode?: string }).menuMode = 'off';
+  }, []);
 
   const sincronizarDesdeMathField = () => {
     const mf = mfRef.current;
@@ -160,8 +159,18 @@ export default function InputBar({ ocupado, iaDisponible, onGraficar, onAnalizar
   const insertarEnMathField = (fragmento: string) => {
     const mf = mfRef.current;
     if (!mf) return;
-    mf.insert(comandoPara(fragmento));
+    // MathLive inserta en el punto de edición (prompt). Para que la inserción
+    // funcione de forma fiable hay que enfocar el campo ANTES de insertar;
+    // de lo contrario hay teclas que no producen ningún cambio visible.
     mf.focus();
+    const comando = comandoPara(fragmento);
+    const ok = mf.executeCommand('insert', comando);
+    // Si el comando no se aplicó, intentar la API directa como respaldo.
+    if (!ok) mf.insert(comando);
+    // La tecla de exponente general ("□ⁿ") inserta un superíndice VACÍO ('^{}').
+    // MathLive deja el cursor fuera de él, por lo que al escribir el número
+    // saldría fuera del exponente. Mover el cursor dentro lo hace editable.
+    if (comando === '^{}') mf.executeCommand('moveToSuperscript');
     // MathLive puede emitir `input` antes de que React reciba el foco de vuelta.
     // Leer el valor en el siguiente frame evita que una tecla quede solo visualmente insertada.
     requestAnimationFrame(sincronizarDesdeMathField);
@@ -170,24 +179,37 @@ export default function InputBar({ ocupado, iaDisponible, onGraficar, onAnalizar
   const borrarCaracter = () => {
     const mf = mfRef.current;
     if (!mf) return;
-    mf.executeCommand('deletePreviousChar');
+    mf.focus();
+    // El comando correcto de MathLive para borrar el carácter previo es
+    // "deleteBackward". "deletePreviousChar" no existe y hace que este botón
+    // no haga nada (MathLive lanza un error de comando desconocido).
+    mf.executeCommand('deleteBackward');
     requestAnimationFrame(sincronizarDesdeMathField);
   };
 
   const moverCursor = (direccion: 'izquierda' | 'derecha') => {
-    mfRef.current?.executeCommand(direccion === 'izquierda' ? 'moveToPreviousChar' : 'moveToNextChar');
-    mfRef.current?.focus();
+    const mf = mfRef.current;
+    if (!mf) return;
+    mf.focus();
+    mf.executeCommand(direccion === 'izquierda' ? 'moveToPreviousChar' : 'moveToNextChar');
   };
 
   const limpiarTodo = () => {
-    mfRef.current?.setValue('');
+    const mf = mfRef.current;
+    mf?.setValue('');
+    mf?.focus();
     setLatex('');
     setTexto('');
   };
 
   const aplicarTexto = (plano: string) => {
+    // Establecer el contenido directamente en el campo de MathLive y reflejarlo
+    // en el estado. Se hace aquí (y no en un efecto que compare valores) para
+    // no reiniciar el cursor del usuario al escribir normalmente.
+    const latexPlano = textoALaTeX(plano);
+    mfRef.current?.setValue(latexPlano);
+    setLatex(latexPlano);
     setTexto(plano);
-    setLatex(textoALaTeX(plano));
   };
 
   const grabarConGroq = async () => {

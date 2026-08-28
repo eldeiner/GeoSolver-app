@@ -287,6 +287,28 @@ const Scene3D = forwardRef<ControlEscena3D, Props>(function Scene3D(
         datos.malla.position.copy(posicion);
         datos.reticulado.quaternion.copy(quaternion);
         datos.reticulado.position.copy(posicion);
+        const necesitaCaja = ec.operador !== '=';
+        if (necesitaCaja && !datos.caja) {
+          // El operador pasó de '=' a '<='/'>=': crear la caja del semiplano
+          const caja = new THREE.Mesh(
+            new THREE.BoxGeometry(26, 26, 26),
+            new THREE.MeshBasicMaterial({
+              color: ec.color,
+              transparent: true,
+              opacity: 0.1,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            }),
+          );
+          datos.caja = caja;
+          datos.grupo.add(caja);
+        } else if (!necesitaCaja && datos.caja) {
+          // El operador pasó de '<='/'>=' a '=': eliminar la caja
+          datos.grupo.remove(datos.caja);
+          datos.caja.geometry.dispose();
+          (datos.caja.material as THREE.Material).dispose();
+          datos.caja = undefined;
+        }
         if (datos.caja) {
           const signo = ec.operador === '>=' ? 1 : -1;
           datos.caja.quaternion.copy(quaternion);

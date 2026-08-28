@@ -2,6 +2,24 @@
 
 Versión de escritorio de **GeoSolver**: suite de álgebra lineal con interfaz tipo GeoGebra, graficación 2D (canvas) y 3D (Three.js/WebGL dentro de Electron), resolución de sistemas e IA Groq.
 
+## Capturas
+
+**Sistema 2D** (dos rectas y su punto de intersección):
+
+![Vista 2D](docs/screenshots/vista-2d.png)
+
+**Inecuaciones con regiones sombreadas:**
+
+![Inecuaciones 2D](docs/screenshots/inecuaciones-2d.png)
+
+**Sistema 3D** (planos translúcidos con su punto de corte):
+
+![Vista 3D](docs/screenshots/vista-3d.png)
+
+**Teclado matemático MathLive:**
+
+![Teclado matemático](docs/screenshots/teclado-matematico.png)
+
 ## Funciones
 
 - Modo 2D y 3D con zoom, arrastre y centrado.
