@@ -71,6 +71,13 @@
       "language": "3082",
       "installerLanguages": ["es_ES", "en_US"],
       "artifactName": "GeoSolver-Setup-${version}.exe"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "eldeiner",
+        "repo": "GeoSolver-app"
+      }
+    ]
   }
 }

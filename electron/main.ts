@@ -681,6 +681,13 @@ if (!esUnico) {
       return;
     }
     crearVentana();
+    // Comprobación automática de actualizaciones al iniciar (solo versión
+    // instalada; el ejecutable portátil no se autoactualiza).
+    if (!ES_DEV && !process.env.PORTABLE_EXECUTABLE_FILE) {
+      autoUpdater.checkForUpdates().catch(() => {
+        // sin conexión o feed no configurado: se ignora y se continúa con normalidad
+      });
+    }
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) crearVentana();
     });
