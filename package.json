@@ -1,0 +1,76 @@
+{
+  "name": "geosolver-desktop",
+  "productName": "GeoSolver",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GeoSolver - Suite de cálculo geométrico y algebraico 2D/3D con IA (Groq) para escritorio",
+  "main": "dist-electron/main.js",
+  "author": "GeoSolver",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -k -s first \"vite\" \"wait-on tcp:127.0.0.1:5173 && electron . --dev\"",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json",
+    "build": "esbuild electron/main.ts --bundle --platform=node --external:electron --external:electron-updater --outfile=dist-electron/main.js --format=cjs && esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=dist-electron/preload.js --format=cjs && vite build",
+    "dist": "npm run build && electron-builder --win",
+    "smoke": "npm run build && electron . --smoke"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/katex": "^0.16.7",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/three": "^0.174.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "esbuild": "^0.24.2",
+    "groq-sdk": "^0.13.0",
+    "katex": "^0.16.21",
+    "mathlive": "^0.106.0",
+    "marked": "^15.0.7",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.174.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.0.7",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.geosolver.desktop",
+    "productName": "GeoSolver",
+    "compression": "maximum",
+    "electronLanguages": ["es", "en-US"],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist-electron/**",
+      "dist/renderer/**",
+      "build/**",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "portable": {
+      "artifactName": "GeoSolver-portable-${version}.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "language": "3082",
+      "installerLanguages": ["es_ES", "en_US"],
+      "artifactName": "GeoSolver-Setup-${version}.exe"
+    }
+  }
+}
